@@ -14,21 +14,28 @@ export const useGetListData = () => {
   const query = useQuery({
     queryKey: ["list"],
     queryFn: async () => {
-      await sleep(1000);
+      try {
+        await sleep(1000);
 
-      if (getRandom() > 85) {
-        console.error("An unexpected error occurred!");
-        throw new Error("👀");
+        if (getRandom() > 85) {
+          console.error("An unexpected error occurred!");
+          throw new Error("👀 Unexpected error while fetching the list.");
+        }
+
+        const mockData = mockJson as Omit<ListItem, "isVisible">[];
+
+        return shuffle(mockData).map((item) => {
+          return { ...item, isVisible: getRandom() > 50 ? true : false };
+        });
+      } catch (error) {
+        console.error("Error in useGetListData queryFn:", error);
+        alert("An error occurred while fetching the list. Please try again later.");
+        throw error;
       }
-
-      const mockData = mockJson as Omit<ListItem, "isVisible">[];
-
-      return shuffle(mockData).map((item) => {
-        return { ...item, isVisible: getRandom() > 50 ? true : false };
-      });
     },
+    retry: false, 
+    refetchOnWindowFocus: false,
   });
-
   return query;
 };
 

@@ -1,42 +1,33 @@
 import { FC } from "react";
 import { ListItem } from "../api/getListData";
-import { DeleteButton, ExpandButton } from "./Buttons";
-import { ChevronUpIcon } from "./icons";
-import { useStore } from "../store";
+import { ButtonFactory, ButtonType } from "./ButtonFactory";
 
 type CardProps = {
-  id: ListItem["id"];
+  id: string;
   title: ListItem["title"];
-  description: ListItem["description"];
+  description?: ListItem["description"];
+  isExpanded?: boolean;
+  isDeleted?: boolean;
+  onToggleExpand?: () => void;
+  onDelete?: () => void;
 };
 
-export const Card: FC<CardProps> = ({ id, title, description }) => {
-  // Użycie selektora `isExpanded` dla tej konkretnej karty
-  const isExpanded = useStore((state) => state.isExpanded(id));
-  const expandCard = useStore((state) => state.expandCard);
-  const hideCard = useStore((state) => state.hideCard);
-
-  // Obsługa kliknięcia rozwijania/zamykania
-  const handleExpandClick = () => {
-    if (isExpanded) {
-      hideCard(id); // Zwijamy kartę
-    } else {
-      expandCard(id); // Rozwijamy kartę
-    }
-  };
-
+export const Card: FC<CardProps> = ({ id, title, description, isExpanded = false, isDeleted, onToggleExpand, onDelete }) => {
   return (
-    <article className="border border-black px-2 py-1.5">
+    <article id={id} className="border border-black px-2 py-1.5 animate-card"
+      aria-labelledby={`card-title-${title}`}
+      aria-describedby={description ? `card-desc-${title}` : undefined}
+    >
       <header className="flex justify-between mb-0.5">
-        <h2 className="font-medium">{title}</h2>
-        <div className="flex">
-          <ExpandButton onClick={handleExpandClick}>
-            {isExpanded ? <ChevronUpIcon /> : "Expand"}
-          </ExpandButton>
-          <DeleteButton />
-        </div>
+        <h3 id={`card-title-${title}`} className="font-medium">{title}</h3>
+        {!isDeleted && (
+          <div className="flex" role="group" aria-label="Card actions">
+            {ButtonFactory(ButtonType.TOGGLE, { onClick: onToggleExpand, isExpanded })}
+            {ButtonFactory(ButtonType.DELETE, { onClick: onDelete })}
+          </div>
+        )}
       </header>
-      {isExpanded && <p className="text-sm">{description}</p>}
+      { description && <p id={`card-desc-${title}`} className={`text-sm card-description ${isExpanded ? 'expanded' : ''}`}>{description}</p>}
     </article>
   );
 };

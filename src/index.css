@@ -58,3 +58,55 @@
     transform: rotate(450deg);
   }
 }
+
+
+
+
+/* for cards shown in delete list */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Fade out after card deletion */
+
+.animate-card-exit {
+  animation: fadeOutDown 0.5s ease-in;
+}
+
+@keyframes fadeOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* default state of description in card */
+
+.card-description {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+/* card expanded state */
+.card-description.expanded {
+  max-height: 200px; 
+  opacity: 1;
+}

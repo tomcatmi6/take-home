@@ -1,76 +1,61 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { ListItem } from "./api/getListData";
 
 export type State = {
-    list: ListItem[]; // Główna lista kart
-    deletedList: ListItem[]; // Lista usuniętych kart
-    expandedCardsList: ListItem['id'][]; // Lista ID rozwiniętych kart
+    list: ListItem[];
+    deletedCards: ListItem[];
+    deletedCardsVisible: boolean;
+    expandedCards: number[];
+    setList: (data: ListItem[]) => void;
+    deleteCard: (id: number) => void;
+    toggleExpand: (id: number) => void;
+    revealDeletedCards: () => void;
 };
 
-export type Actions = {
-    setList: (list: ListItem[]) => void; // Ustawia listę kart
-    setDeletedList: (list: ListItem[]) => void; // Ustawia listę usuniętych kart
-    expandCard: (id: ListItem['id']) => void; // Dodaje kartę do rozwiniętych
-    hideCard: (id: ListItem['id']) => void; // Usuwa kartę z rozwiniętych
-    addCard: (card: ListItem) => void; // Dodaje nową kartę do listy
-    deleteCard: (id: ListItem['id']) => void; // Usuwa kartę i przenosi ją do usuniętych
-    revealDeletedCards: () => void; // Przywraca wszystkie usunięte karty do listy
-    clearDeletedCards: () => void; // Czyści listę usuniętych kart
-};
-
-export type Selectors = {
-    visibleCards: () => ListItem[]; // Zwraca widoczne karty
-    deletedCards: () => ListItem[]; // Zwraca usunięte karty
-    extendedCards: () => ListItem['id'][]; // Zwraca ID rozwiniętych kart
-    isExpanded: (id: ListItem['id']) => boolean; // Sprawdza, czy karta jest rozwinięta
-};
-
-export const useStore = create<State & Actions & Selectors>((set, get) => ({
-    // Stan początkowy
-    list: [],
-    deletedList: [],
-    expandedCardsList: [],
-
-    // Akcje
-    setList: (list) => set({ list }),
-    setDeletedList: (deletedList) => set({ deletedList }),
-
-    expandCard: (id) => set((state) => (
-        console.log(state.expandedCardsList),
+export const useListStore = create<State>()(
+    persist(
+        (set, get) => ({
+            list: [],
+            deletedCards: [],
+            deletedCardsVisible: false,
+            expandedCards: JSON.parse(localStorage.getItem("list-store") || "{}").expandedCards || [],
+            setList: (data: ListItem[]) => set({ list: data }),
+            deleteCard: (id: ListItem['id']) => {
+                const { list, deletedCards } = get() as State;
+                // im using ListItem with description available for future "reveal" feature. 
+                const card = list.find((item: ListItem) => item.id === id);
+                if (card) {
+                    set({
+                        list: list.filter((item) => item.id !== id),
+                        deletedCards: [...deletedCards, { id: card.id, title: card.title, description: card.description, isVisible: false }],
+                    });
+                }
+            },
+            toggleExpand: (id) => {
+                const { expandedCards } = get() as State;
+                const updatedSet = new Set(expandedCards);
+                if (updatedSet.has(id)) {
+                    updatedSet.delete(id);
+                } else {
+                    updatedSet.add(id);
+                }
+                set({ expandedCards: Array.from(updatedSet) });
+            },
+            revealDeletedCards: () => {
+                set(() => ({
+                    deletedCardsVisible: true,
+                }));
+            },
+        }),
         {
-       
-        expandedCardsList: state.expandedCardsList.includes(id)
-            ? state.expandedCardsList // Jeśli już rozwinięte, nic nie zmieniaj
-            : [...state.expandedCardsList, id], // Dodaj ID karty do listy
-    }
-)),
-
-    hideCard: (id) => set((state) => ({
-        expandedCardsList: state.expandedCardsList.filter((cardId) => cardId !== id),
-    })),
-
-    addCard: (card) => set((state) => ({
-        list: [...state.list, card],
-    })),
-
-    deleteCard: (id) => set((state) => {
-        const cardToDelete = state.list.find((card) => card.id === id);
-        return {
-            list: state.list.filter((card) => card.id !== id),
-            deletedList: cardToDelete ? [...state.deletedList, cardToDelete] : state.deletedList,
-        };
-    }),
-
-    revealDeletedCards: () => set((state) => ({
-        list: [...state.list, ...state.deletedList],
-        deletedList: [],
-    })),
-
-    clearDeletedCards: () => set({ deletedList: [] }),
-
-    // Selektory
-    visibleCards: () => get().list,
-    deletedCards: () => get().deletedList,
-    extendedCards: () => get().expandedCardsList,
-    isExpanded: (id) => get().expandedCardsList.includes(id),
-}));
+            name: "list-store",
+            partialize: (state: State) => ({
+                list: state.list,
+                deletedCards: state.deletedCards,
+                deletedCardsVisible: state.deletedCardsVisible,
+                expandedCards: state.expandedCards,
+            }),
+        }
+    )
+);
