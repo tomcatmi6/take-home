@@ -6,7 +6,17 @@ import { useListStore } from "../store";
 import { ButtonFactory, ButtonType } from "./ButtonFactory";
 
 export const Entrypoint = () => {
-  const { list, deletedCards, expandedCards, deletedCardsVisible, isListLoading, deleteCard, toggleExpand, revealDeletedCards } = useListStore();
+  const {
+    list,
+    deletedCards,
+    expandedCards,
+    deletedCardsVisible,
+    isLoading,
+    isError,
+    deleteCard,
+    toggleExpand,
+    revealDeletedCards,
+  } = useListStore();
   const listQuery = useGetListData();
   const [visibleCards, setVisibleCards] = useState<ListItem[]>([]);
 
@@ -15,12 +25,12 @@ export const Entrypoint = () => {
   }, [list]);
 
   useEffect(() => {
-    if (!isListLoading && listQuery.data) {
+    if (!isLoading && listQuery.data) {
       useListStore.setState({ list: listQuery.data });
     }
     console.log("List data updated:", listQuery);
-  }, [isListLoading, listQuery.data]);
-  if (isListLoading) {
+  }, [isLoading, listQuery.data]);
+  if (isLoading) {
     return <Spinner />;
   }
   const handleDelete = (id: number) => {
@@ -41,7 +51,7 @@ export const Entrypoint = () => {
     listQuery.refetch();
   };
 
-  if (listQuery.isError) {
+  if (isError) {
     return (
       <div className="error-message">
         <p>⚠️ Failed to fetch data. Please try again later.</p>
@@ -57,12 +67,17 @@ export const Entrypoint = () => {
   return (
     <div className="flex gap-x-16">
       <section className="w-full max-w-xl" aria-labelledby="cards-list-heading">
-      <div className="flex items-center justify-between">
-        <h2 id="cards-list-heading" className="mb-1 font-medium text-lg">My Awesome List ({list.length})</h2>
-        {ButtonFactory(ButtonType.REFRESH, { onClick: handleRefresh, disabled: isListLoading })}
+        <div className="flex items-center justify-between">
+          <h2 id="cards-list-heading" className="mb-1 font-medium text-lg">
+            My Awesome List ({list.length})
+          </h2>
+          {ButtonFactory(ButtonType.REFRESH, {
+            onClick: handleRefresh,
+            disabled: isLoading,
+          })}
         </div>
         <div className="flex flex-col gap-y-3">
-        {visibleCards.map((card: ListItem) => (
+          {visibleCards.map((card: ListItem) => (
             <Card
               id={`card-${card.id}`}
               key={card.id}
@@ -75,15 +90,33 @@ export const Entrypoint = () => {
           ))}
         </div>
       </section>
-      <section className="w-full max-w-xl" aria-labelledby="deleted-cards-list-heading" aria-live="polite">
+      <section
+        className="w-full max-w-xl"
+        aria-labelledby="deleted-cards-list-heading"
+        aria-live="polite"
+      >
         <div className="flex items-center justify-between">
-          <h2 id="deleted-cards-list-heading" className="mb-1 font-medium text-lg">Deleted Cards ({deletedCards.length})</h2>
-          {ButtonFactory(ButtonType.REVEAL, { onClick: revealDeletedCards, disabled: deletedCards.length === 0 })}
+          <h2
+            id="deleted-cards-list-heading"
+            className="mb-1 font-medium text-lg"
+          >
+            Deleted Cards ({deletedCards.length})
+          </h2>
+          {ButtonFactory(ButtonType.REVEAL, {
+            onClick: revealDeletedCards,
+            disabled: isLoading || deletedCards.length === 0,
+          })}
         </div>
         <div className="flex flex-col gap-y-3">
-          {deletedCardsVisible && deletedCards.map((card: ListItem) => (
-            <Card id={`card-${card.id}`} key={card.id} title={card.title} isDeleted={true}/>
-          ))}
+          {deletedCardsVisible &&
+            deletedCards.map((card: ListItem) => (
+              <Card
+                id={`card-${card.id}`}
+                key={card.id}
+                title={card.title}
+                isDeleted={true}
+              />
+            ))}
         </div>
       </section>
     </div>

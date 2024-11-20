@@ -24,10 +24,12 @@ export const ButtonFactory = (
     case ButtonType.TOGGLE: {
       const { isExpanded, ...rest } = props as ToggleButtonProps;
       return (
-        <button aria-label={isExpanded ? "Collapse" : "Expand"} className={cardButtonStyles} {...rest}>
-          <span className="sr-only">
-            {isExpanded ? "Collapse" : "Expand"}
-          </span>
+        <button
+          aria-label={isExpanded ? "Collapse" : "Expand"}
+          className={cardButtonStyles}
+          {...rest}
+        >
+          <span className="sr-only">{isExpanded ? "Collapse" : "Expand"}</span>
           {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
         </button>
       );
@@ -35,24 +37,36 @@ export const ButtonFactory = (
 
     case ButtonType.DELETE:
       return (
-        <button aria-label="Delete card" className={cardButtonStyles} {...props}>
+        <button
+          aria-label="Delete card"
+          className={cardButtonStyles}
+          {...props}
+        >
           <span className="sr-only">Delete</span>
           <XMarkIcon />
         </button>
       );
 
-      // here will be "revert" button if needed. I used facory pattern to create buttons so we can add f.e. revert button easily
+    // here will be "revert" button if needed. I used facory pattern to create buttons so we can add f.e. revert button easily
 
     case ButtonType.REFRESH:
       return (
-        <button aria-label="Refresh the page" className={actionButtonStyles} {...props}>
+        <button
+          aria-label="Refresh the page"
+          className={actionButtonStyles}
+          {...props}
+        >
           Refresh
         </button>
       );
 
     case ButtonType.REVEAL:
       return (
-        <button aria-label="Reveal deleted cards" className={actionButtonStyles} {...props}>
+        <button
+          aria-label="Reveal deleted cards"
+          className={actionButtonStyles}
+          {...props}
+        >
           Reveal
         </button>
       );
