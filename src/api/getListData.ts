@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import mockJson from "./mock.json";
+import { useListStore } from "../store";
 
 export type ListItem = {
   id: number;
@@ -11,24 +12,37 @@ export type ListItem = {
 export type DeletedListItem = Omit<ListItem, "description">;
 
 export const useGetListData = () => {
+  const setLoading = useListStore((state) => state.setLoading);
+  const setError = useListStore((state) => state.setError);
+
   const query = useQuery({
     queryKey: ["list"],
     queryFn: async () => {
-      await sleep(1000);
+      setLoading(true);
+      setError(false);
+      try {
+        await sleep(1000);
 
-      if (getRandom() > 85) {
-        console.error("An unexpected error occurred!");
-        throw new Error("👀");
+        if (getRandom() > 85) {
+          throw new Error("👀 Unexpected error while fetching the list.");
+        }
+
+        const mockData = mockJson as Omit<ListItem, "isVisible">[];
+
+        return shuffle(mockData).map((item) => ({
+          ...item,
+          isVisible: getRandom() > 50,
+        }));
+      } catch (error) {
+        setError(true);
+        throw error;
+      } finally {
+        setLoading(false);
       }
-
-      const mockData = mockJson as Omit<ListItem, "isVisible">[];
-
-      return shuffle(mockData).map((item) => {
-        return { ...item, isVisible: getRandom() > 50 ? true : false };
-      });
     },
+    retry: false,
+    refetchOnWindowFocus: false,
   });
-
   return query;
 };
 

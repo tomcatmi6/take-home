@@ -32,3 +32,25 @@
 
 You may leave a message explaining your coding choices, but it's not necessary.
 Testing framework isn't installed, so instead just explain whether you think it's a good or bad idea to write tests for this feature or how to approach it.
+
+
+Testing features I would add to app:
+
+1.	Store:
+	- deleteCard: Ensure a card is removed from list and added to deletedCards.
+	- toggleExpand: Validate toggling works as expected.
+	- revealDeletedCards: Ensure deletedCardsVisible is set to true.
+    - ensure if store is updated and errors are handled properly
+2.	Components:
+	- Card: Render with/without a description, expanded/collapsed states, and verify button actions.
+	- Entrypoint: Ensure correct rendering based on Zustand store states.
+3.	Persistence:
+	- Mock localStorage and test if expandedCards persists correctly across refreshes.
+4.	Error Handling:
+	- Simulate API failure and validate the “Retry” functionality works.
+5.	UI Validation:
+	- Test that animations (like fade-out on delete) apply correctly using CSS class assertions.
+6. Button Factory:
+    - test if factory correctly provides proper buttons into app and classes, check if it throws error when selecting unknown button
+
+From manual point of testing it would be good to make WCAG tests from a11ty view using built screen reader and use "Wave" tool to check if heading structure is proper and other accessibility points are valid.
